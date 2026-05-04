@@ -20,7 +20,7 @@ profile:
 # 机场订阅
 proxy-providers:
   Airport1:
-    url: "https://dl.283382.xyz/MING/sub?target=clash"
+    url: "*"
     type: http
     interval: 86400
     health-check:
