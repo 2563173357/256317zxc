@@ -1,46 +1,51 @@
+# 机场订阅
+proxy-providers:
+  免费1:
+    url: "*****"
+    type: http
+    interval: 86400
+    health-check:
+      enable: true
+      url: https://www.google.com/generate_204
+      interval: 300
+    proxy: 直连
+    #header:
+    #- "mihomo"  #拉取文件类型
+    override:
+      skip-cert-verify: true  #跳过证书
+      
+  
+      
+
+#global-ua: mihomo   #拉取文件类型
+ 
 # 全局配置 
 port: 9870         # HTTP(S) 代理端口
 socks-port: 9871   # SOCKS5 代理端口
 redir-port: 9872
-tproxy-port: 9873
-allow-lan: true
-bind-address: "*"
-ipv6: false
+mixed-port: 9873
+tproxy-port: 9874
+allow-lan: true     #局域网
+bind-address: "*"   #允许局域网ip
+ipv6: false     
 unified-delay: true
 tcp-concurrent: true
 log-level: warning
+find-proccess-mode: 'off'
 global-client-fingerprint: chrome
 keep-alive-idle: 600
 keep-alive-interval: 15
 profile:
   store-selected: true
-  store-fake-ip: true
+  store-fake-ip: true 
   
-  
-# 机场订阅
-proxy-providers:
-  Airport1:
-    url: "*"
-    type: http
-    interval: 86400
-    health-check:
-      enable: true
-      url: https://www.gstatic.com/generate_204
-      interval: 300
-    proxy: 直连
-
-# 节点信息
-proxies:
-  - {name: 直连, type: direct}
-
-
-# 为防止使用插件朋友遇到面板问题，我注释掉了此模块。
+# 面板
 secret: MHIVE
 external-controller: "0.0.0.0:9080"
 external-ui: dist
 external-ui-url: https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
 
-# 嗅探（fakeip下其实可以不用嗅探）
+# 嗅探
 sniffer:
   enable: true
   sniff:
@@ -51,24 +56,27 @@ sniffer:
       ports: [443, 8443]
     QUIC:
       ports: [443, 8443]
-  skip-domain:
+  force-domain:  #强制嗅探
+  
+  skip-domain:  #忽略嗅探
     - "Mijia Cloud"
     - "+.push.apple.com"
 
+
 # 入站
 tun:
-  enable: false
-  # system/gvisor/mixed
-  stack: mixed
-  dns-hijack: ["any:53", "tcp://any:53"]
+  enable: true 
+  stack: mixed  # system(原生容器 / RunC)/gvisor(安全沙箱容器)/mixed(混合模式)
+  #dns-hijack: ["any:53", "tcp://any:53"]
   #使用nikki，混入全部不修改的情况，开启接口指定为nikki
   #device: nikki
   #使用仅内核自行修改下面三项为true
   auto-route: true
   auto-redirect: true
   auto-detect-interface: true
+  #route-exclude-address-set:
 
-# DNS模块
+# DNS模块  
 dns:
   enable: true
   cache-algorithm: arc
@@ -77,87 +85,125 @@ dns:
   respect-rules: true
   enhanced-mode: fake-ip
   fake-ip-range: 28.0.0.1/8
-  fake-ip-filter-mode: blacklist
+  fake-ip-filter-mode: blacklist #fake-ip黑名单模式
+  fake-ip-filter: #黑名单
+    - '*.lan'               # 局域网后缀
+    - '*.localdomain'
+    - "rule-set:大陆IP"
+    - "rule-set:私有网络" 
   default-nameserver:
     - https://223.5.5.5/dns-query
   proxy-server-nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
-  direct-nameserver:
+  nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
-  nameserver:
-    - https://8.8.8.8/dns-query#RULES&ecs=223.5.5.0/24
-  fake-ip-filter:
-    - "rule-set:fakeipfilter_domain"
- 
-# 出站策略，根据自己情况调整每个策略里分组排序，增删都可以，比如把美国自动放到第一个，比如删除香港故转，注意别漏掉表情逗号等。
-# 如果相应分组没有筛选到对应的国家，请根据自己节点名字调整筛选关键字。
-# 没有再使用锚点，是考虑很多新手修改难度，这样新手修改某个分组更容易些。
-# ... 前面保持不变 (mixed-port, dns, tun, etc.) ...
-
-# 极简出站策略：仅保留核心代理和自动测速
-proxy-groups:
-  - {name: 🚀 默认代理, type: select, proxies: [♻️ 自动选择, 🌐 全部节点, 直连]}
-  - {name: 🐟 漏网之鱼, type: select, proxies: [🌐 全部节点, 直连]}  
-  - {name: ♻️ 自动选择, type: url-test, url: "https://www.gstatic.com/generate_204", interval: 300, tolerance: 50, include-all: true, filter: "^((?!(直连)).)*$"}
-  - {name: 🌐 全部节点, type: select, include-all: true}
-
-# 规则匹配：保留规则集，除直连外全部指向 [🚀 默认代理]，漏网之鱼直连
-rules:
-  - RULE-SET,private_ip,直连,no-resolve
-  - RULE-SET,private_domain,直连
-  - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
-  - RULE-SET,proxylite,🚀 默认代理
-  - RULE-SET,ai,🚀 默认代理
-  - RULE-SET,github_domain,🚀 默认代理
-  - RULE-SET,youtube_domain,🚀 默认代理
-  - RULE-SET,google_domain,🚀 默认代理
-  - RULE-SET,onedrive_domain,🚀 默认代理
-  - RULE-SET,microsoft_domain,🚀 默认代理
-  - RULE-SET,apple_domain,直连
-  - RULE-SET,tiktok_domain,🚀 默认代理
-  - RULE-SET,telegram_domain,🚀 默认代理
-  - RULE-SET,netflix_domain,🚀 默认代理
-  - RULE-SET,paypal_domain,🚀 默认代理
-  - RULE-SET,apple_ip,直连
-  - RULE-SET,google_ip,🚀 默认代理
-  - RULE-SET,netflix_ip,🚀 默认代理
-  - RULE-SET,telegram_ip,🚀 默认代理
-  - RULE-SET,geolocation-!cn,🚀 默认代理
-  - RULE-SET,cn_domain,直连
-  - RULE-SET,cn_ip,直连
-  # 兜底：未匹配到规则的流量直接连接（不走代理）
-  - MATCH,🐟 漏网之鱼
-
-# 规则集定义 (参考 configdns.yaml)
-rule-anchor:
-  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
-  domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
-  class: &class {type: http, interval: 86400, behavior: classical, format: text}
-
-rule-providers: 
-  fakeipfilter_domain: {<<: *domain, url: "https://raw.githubusercontent.com/wwqgtxx/clash-rules/release/fakeip-filter.mrs"}
-  private_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"}
-  proxylite: { <<: *class, url: "https://raw.githubusercontent.com/qichiyuhub/rule/refs/heads/main/rules/proxy.list"}
-  ai: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs" }
-  youtube_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"}
-  google_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
-  github_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs"}
-  telegram_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"}
-  netflix_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.mrs"}
-  paypal_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/paypal.mrs"}
-  onedrive_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs"}
-  microsoft_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs"}
-  apple_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/apple.mrs"}
-  speedtest_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/ookla-speedtest.mrs"}
-  tiktok_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tiktok.mrs"}
-  geolocation-!cn: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs"}
-  cn_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"}
   
-  private_ip: {<<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/private.mrs"}
-  cn_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
-  google_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
-  telegram_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"}
-  netflix_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs"}
-  apple_ip: {<<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo-lite/geoip/apple.mrs"}
+
+    
+proxies:
+  - {name: 直连, type: direct}
+  - {name: 断开, type: reject}    
+    
+# 极简出站策略   
+proxy-groups:
+  - {name: 🚀 代理, type: select, proxies: [♻️ 自动, 🌐 全部, 直连]}
+  - {name: 🐟 漏网, type: select, proxies: [🌐 全部, 直连, 断开]}
+  - {name: ✍️ 手动, type: select, proxies: [🌐 全部, 直连, 断开]}
+  - {name: ♻️ 自动, type: url-test, url: "https://www.google.com/generate_204", interval: 300, tolerance: 50, include-all: true, filter: "^((?!(直连)).)*$"}
+  - {name: 🛑 广告拦截, type: select, proxies: [直连, 断开]}
+  - {name: 🌐 全部, type: select, include-all: true}
+  
+# 规则匹配
+rules:
+  - RULE-SET,广告,🛑 广告拦截
+  - RULE-SET,局域网IP,直连
+  - RULE-SET,直连域名,直连
+  - RULE-SET,私有网络,直连
+  - RULE-SET,苹果直连,直连
+  - RULE-SET,直连软件,直连
+  - RULE-SET,代理域名,🚀 代理
+  - RULE-SET,GFW域名,🚀 代理
+  - RULE-SET,TGIP,🚀 代理
+  - RULE-SET,非中域名,✍️ 手动
+  - RULE-SET,大陆IP,✍️ 手动
+  - MATCH,🐟 漏网
+
+
+rule-providers:
+  广告:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt"
+    path: ./ruleset/reject.yaml
+    interval: 86400
+  苹果直连:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt"
+    path: ./ruleset/apple.yaml
+    interval: 86400
+
+  代理域名:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt"
+    path: ./ruleset/proxy.yaml
+    interval: 86400
+
+  直连域名:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt"
+    path: ./ruleset/direct.yaml
+    interval: 86400
+
+  私有网络:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt"
+    path: ./ruleset/private.yaml
+    interval: 86400
+
+  GFW域名:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt"
+    path: ./ruleset/gfw.yaml
+    interval: 86400
+
+  非中域名:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt"
+    path: ./ruleset/tld-not-cn.yaml
+    interval: 86400
+
+  TGIP:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/telegramcidr.txt"
+    path: ./ruleset/telegramcidr.yaml
+    interval: 86400
+
+  大陆IP:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/cncidr.txt"
+    path: ./ruleset/cncidr.yaml
+    interval: 86400
+
+  局域网IP:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/lancidr.txt"
+    path: ./ruleset/lancidr.yaml
+    interval: 86400
+
+  直连软件:
+    type: http
+    behavior: classical
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt"
+    path: ./ruleset/applications.yaml
+    interval: 86400
