@@ -1,7 +1,7 @@
 # 机场订阅
 proxy-providers:
   免费新:
-    url: "*"
+    url: "http://192.168.2.3:3008/MHIVE99/download/%E5%85%8D%E8%B4%B92?target=Stash"
     type: http
     interval: 86400
     health-check:
@@ -16,7 +16,7 @@ proxy-providers:
       
       
   免费旧:
-    url: "*"
+    url: "http://192.168.2.3:3008/MHIVE99/download/%E5%85%8D%E8%B4%B91?target=ClashMeta"
     type: http
     interval: 86400
     health-check:
@@ -178,22 +178,23 @@ proxy-groups:
 # =========================
 # 🟦 功能层（统一走节点选择）
 # =========================
-  - {name: 微软苹果, type: select, proxies: [国内直连, 手动全部, 自动选择], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Microsoft.png"}
-  - {name: 游戏, type: select, proxies: [国内直连, 手动全部, 自动选择], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Steam.png"}
-  - {name: AI, type: select, proxies: [国内直连, 手动全部, 自动选择], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/AI_Tree.png"}
-  - {name: 视频, type: select, proxies: [国内直连, 手动全部, 自动选择], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/YouTube.png"}
+  - {name: 微软苹果, type: select, proxies: [国内直连, 手动全部, 自动选择], icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/Microsoft_365.png"}
+  - {name: 游戏, type: select, proxies: [国内直连,自动选择, 手动全部], icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/Game.png"}
+  - {name: AI, type: select, proxies: [自动选择,国内直连, 手动全部], icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/ChatGPT.png"}
+  - {name: 视频, type: select, proxies: [自动选择,国内直连, 手动全部], icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/YouTube.png"}
+  - {name: 默认代理, type: select, proxies: [自动选择,手动全部, 国内直连], icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/Google.png"}
 # =========================
 # 🧭 核心出口控制层
 # =========================
-  - {name: 自动选择, type: url-test, url: "https://www.google.com/generate_204", interval: 300, tolerance: 50, include-all: true, filter: "^((?!(直连)).)*$",icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Auto_Link.png"} 
-  - {name: 手动全部, type: select, include-all: true, url: "https://www.google.com/generate_204", filter: "^((?!(直连)).)*$",icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Flight.png"}
+  - {name: 自动选择, type: url-test, url: "https://www.google.com/generate_204", interval: 300, tolerance: 50, include-all: true, filter: "^((?!(直连)).)*$",icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/Auto_Link.png"} 
+  - {name: 手动全部, type: select, include-all: true, url: "https://www.google.com/generate_204", filter: "^((?!(直连)).)*$",icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/Flight.png"}
 # =========================
 # 🛡 控制层
 # =========================
-  - {name: 国内直连, type: select, proxies: [DIRECT], url: "http://www.aliyun.com/generate_204", icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Home.png"}
-  - {name: 拒绝连接, type: select, proxies: [REJECT], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Forbidden.png"}
-  - {name: 广告拦截, type: select, proxies: [拒绝连接, 国内直连, 自动选择],icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Adguard.png"}  
-  - {name: 漏网, type: select, proxies: [国内直连, 自动选择, 拒绝连接],icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Fish.png"}
+  - {name: 国内直连, type: select, proxies: [DIRECT], url: "http://connectivitycheck.platform.hicloud.com/generate_204", icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/China.png"}
+  - {name: 拒绝连接, type: select, proxies: [REJECT], url: "http://connectivitycheck.platform.hicloud.com/generate_204", icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/Forbidden.png"}
+  - {name: 广告拦截, type: select, proxies: [拒绝连接, 国内直连, 自动选择], icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/Adguard.png"}  
+  - {name: 漏网, type: select, proxies: [国内直连, 自动选择, 拒绝连接], icon: "https://raw.githubusercontent.com/2563173357/TB/main/Icon/Color/Large/Fish_b.png"}
 
 
   
@@ -296,34 +297,34 @@ rules:
   # =========================
   # GitHub
   # =========================
-  - DOMAIN-SUFFIX,githubusercontent.com,自动选择
-  - DOMAIN-SUFFIX,githubassets.com,自动选择
+  - DOMAIN-SUFFIX,githubusercontent.com,默认代理
+  - DOMAIN-SUFFIX,githubassets.com,默认代理
   # =========================
   # 💬 Telegram 专区
   # =========================
-  - GEOSITE,telegram,自动选择
-  - GEOIP,telegram,自动选择
+  - GEOSITE,telegram,默认代理
+  - GEOIP,telegram,默认代理
   # =========================
   # 🌍 代理核心（通用外网）
   # =========================
-  - GEOSITE,google,自动选择
-  - GEOSITE,github,自动选择
-  - DOMAIN-SUFFIX,githubusercontent.com,自动选择
-  - DOMAIN-SUFFIX,wikipedia.org,自动选择
-  - DOMAIN-SUFFIX,reddit.com,自动选择
-  - DOMAIN-SUFFIX,twitter.com,自动选择
-  - DOMAIN-SUFFIX,x.com,自动选择
-  - DOMAIN-SUFFIX,quora.com,自动选择
-  - DOMAIN-SUFFIX,stackoverflow.com,自动选择
-  - DOMAIN-SUFFIX,stackexchange.com,自动选择
-  - DOMAIN-SUFFIX,docker.com,自动选择
-  - DOMAIN-SUFFIX,gitlab.com,自动选择
-  - DOMAIN-SUFFIX,medium.com,自动选择
-  - DOMAIN-SUFFIX,notion.so,自动选择
-  - DOMAIN-SUFFIX,figma.com,自动选择
+  - GEOSITE,google,默认代理
+  - GEOSITE,github,默认代理
+  - DOMAIN-SUFFIX,githubusercontent.com,默认代理
+  - DOMAIN-SUFFIX,wikipedia.org,默认代理
+  - DOMAIN-SUFFIX,reddit.com,默认代理
+  - DOMAIN-SUFFIX,twitter.com,默认代理
+  - DOMAIN-SUFFIX,x.com,默认代理
+  - DOMAIN-SUFFIX,quora.com,默认代理
+  - DOMAIN-SUFFIX,stackoverflow.com,默认代理
+  - DOMAIN-SUFFIX,stackexchange.com,默认代理
+  - DOMAIN-SUFFIX,docker.com,默认代理
+  - DOMAIN-SUFFIX,gitlab.com,默认代理
+  - DOMAIN-SUFFIX,medium.com,默认代理
+  - DOMAIN-SUFFIX,notion.so,默认代理
+  - DOMAIN-SUFFIX,figma.com,默认代理
   # =========================
   # 🌐 国际基础服务
   # =========================
-  - GEOSITE,geolocation-!cn,自动选择
+  - GEOSITE,geolocation-!cn,默认代理
 
   - MATCH,漏网
