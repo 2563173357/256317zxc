@@ -1,7 +1,7 @@
 # 机场订阅
 proxy-providers:
   免费新:
-    url: "http://192.168.2.3:3008/MHIVE99/download/%E5%85%8D%E8%B4%B92?target=Stash"
+    url: "*"
     type: http
     interval: 86400
     health-check:
@@ -16,7 +16,7 @@ proxy-providers:
       
       
   免费旧:
-    url: "http://192.168.2.3:3008/MHIVE99/download/%E5%85%8D%E8%B4%B91?target=ClashMeta"
+    url: "*"
     type: http
     interval: 86400
     health-check:
