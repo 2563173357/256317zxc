@@ -1,0 +1,329 @@
+# 机场订阅
+proxy-providers:
+  免费新:
+    url: "*"
+    type: http
+    interval: 86400
+    health-check:
+      enable: true
+      url: https://www.google.com/generate_204
+      interval: 300
+    proxy: 国内直连
+    #header:
+    #- "mihomo"  #拉取文件类型
+    #override:
+      #skip-cert-verify: true  #跳过证书
+      
+      
+  免费旧:
+    url: "*"
+    type: http
+    interval: 86400
+    health-check:
+      enable: true
+      url: https://www.google.com/generate_204
+      interval: 300
+    proxy: 国内直连
+    #header:
+    #- "mihomo"  #拉取文件类型
+    #override:
+      #skip-cert-verify: true  #跳过证书
+  
+      
+
+#global-ua: mihomo   #拉取文件类型
+ 
+# 全局配置 
+port: 9870         # HTTP(S) 代理端口
+socks-port: 9871   # SOCKS5 代理端口
+#redir-port: 9872
+#mixed-port: 9873
+#proxy-port: 9874
+allow-lan: true     #局域网
+bind-address: "*"   #允许局域网ip
+ipv6: false     
+unified-delay: true
+tcp-concurrent: true
+log-level: warning
+find-proccess-mode: 'off'
+global-client-fingerprint: chrome
+keep-alive-idle: 600
+keep-alive-interval: 15
+profile:
+  store-selected: true
+  store-fake-ip: true 
+  
+# 面板
+secret: MHIVE
+external-controller: "0.0.0.0:9090"
+#external-ui: dist
+#external-ui-url: https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
+
+# 嗅探
+sniffer:
+  enable: true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+  force-domain:  #强制嗅探
+  
+  skip-domain:  #忽略嗅探
+    - "Mijia Cloud"
+    - "+.push.apple.com"
+
+
+# 入站
+tun:
+  enable: true 
+  stack: mixed  # system(原生容器 / RunC)/gvisor(安全沙箱容器)/mixed(混合模式)
+  #dns-hijack: ["any:53", "tcp://any:53"]
+  #使用nikki，混入全部不修改的情况，开启接口指定为nikki
+  #device: nikki
+  #使用仅内核自行修改下面三项为true
+  auto-route: true
+  auto-redirect: true
+  auto-detect-interface: true
+  #route-exclude-address-set:
+
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:1053
+
+  # =========================
+  # 🚀 核心模式
+  # =========================
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter-mode: blacklist
+
+  fake-ip-filter:
+    - "*.lan"
+    - "*.local"
+    - "*.localdomain"
+    - "*.home.arpa"
+    - "localhost"
+    - "*.msftconnecttest.com"
+    - "*.msftncsi.com"
+
+  # =========================
+  # ⚙️ 基础DNS（仅用于初始解析）
+  # =========================
+  default-nameserver:
+    - 223.5.5.5        # 阿里
+    - 119.29.29.29     # 腾讯
+
+  # =========================
+  # 🧠 直连解析（国内域名）
+  # 👉 走 AdGuard Home
+  # =========================
+  nameserver:
+    - 192.168.2.3      # AdGuard Home（核心）
+
+  # =========================
+  # 🌍 代理域名解析（避免污染）
+  # =========================
+  proxy-server-nameserver:
+    - https://1.1.1.1/dns-query
+    - https://dns.google/dns-query
+
+  # =========================
+  # 🔄 回退DNS（防污染兜底）
+  # =========================
+  fallback:
+    - https://1.1.1.1/dns-query
+    - https://dns.google/dns-query
+    - https://dns.quad9.net/dns-query
+
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+
+  # =========================
+  # 🧭 精准分流DNS（关键）
+  # =========================
+  nameserver-policy:
+    geosite:cn:
+      - 192.168.2.3
+
+    geosite:private:
+      - 192.168.2.3
+
+    geosite:geolocation-!cn:
+      - https://1.1.1.1/dns-query
+      - https://dns.google/dns-query
+
+    geosite:openai:
+      - https://1.1.1.1/dns-query
+
+    geosite:anthropic:
+      - https://1.1.1.1/dns-query
+
+    geosite:google:
+      - https://dns.google/dns-query
+
+  # =========================
+  # 🧪 性能优化
+  # =========================
+  cache-algorithm: arc
+  respect-rules: true
+  
+  
+proxy-groups:
+# =========================
+# 🟦 功能层（统一走节点选择）
+# =========================
+  - {name: 微软苹果, type: select, proxies: [国内直连, 手动全部, 自动选择], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Microsoft.png"}
+  - {name: 游戏, type: select, proxies: [国内直连, 手动全部, 自动选择], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Steam.png"}
+  - {name: AI, type: select, proxies: [国内直连, 手动全部, 自动选择], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/AI_Tree.png"}
+  - {name: 视频, type: select, proxies: [国内直连, 手动全部, 自动选择], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/YouTube.png"}
+# =========================
+# 🧭 核心出口控制层
+# =========================
+  - {name: 自动选择, type: url-test, url: "https://www.google.com/generate_204", interval: 300, tolerance: 50, include-all: true, filter: "^((?!(直连)).)*$",icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Auto_Link.png"} 
+  - {name: 手动全部, type: select, include-all: true, url: "https://www.google.com/generate_204", filter: "^((?!(直连)).)*$",icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Flight.png"}
+# =========================
+# 🛡 控制层
+# =========================
+  - {name: 国内直连, type: select, proxies: [DIRECT], url: "http://www.aliyun.com/generate_204", icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Home.png"}
+  - {name: 拒绝连接, type: select, proxies: [REJECT], icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Forbidden.png"}
+  - {name: 广告拦截, type: select, proxies: [拒绝连接, 国内直连, 自动选择],icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Adguard.png"}  
+  - {name: 漏网, type: select, proxies: [国内直连, 自动选择, 拒绝连接],icon: "https://raw.githubusercontent.com/Vbaethon/HOMOMIX/main/Icon/Color/Large/Fish.png"}
+
+
+  
+  
+# 规则匹配
+rules:
+  - GEOSITE,category-ads-all,广告拦截 # 广告
+  - GEOSITE,cn,国内直连
+  - GEOIP,CN,国内直连
+  - GEOSITE,private,国内直连
+  - DOMAIN-SUFFIX,wechat.com,国内直连
+  - DOMAIN-SUFFIX,tenpay.com,国内直连
+  - DOMAIN-SUFFIX,alicdn.com,国内直连
+  - DOMAIN-SUFFIX,csdn.net,国内直连
+  - DOMAIN-SUFFIX,douban.com,国内直连
+  - DOMAIN-SUFFIX,oschina.net,国内直连
+  - IP-CIDR,10.0.0.0/8,国内直连,no-resolve
+  - IP-CIDR,172.16.0.0/12,国内直连,no-resolve
+  - IP-CIDR,192.168.0.0/16,国内直连,no-resolve
+  - IP-CIDR,100.64.0.0/10,国内直连,no-resolve
+  # =========================
+  # 🤖 OpenAI（ChatGPT）
+  # =========================
+  - DOMAIN-SUFFIX,openai.com,AI
+  - DOMAIN-SUFFIX,chatgpt.com,AI
+  - DOMAIN-SUFFIX,oaistatic.com,AI
+  - DOMAIN-SUFFIX,oaiusercontent.com,AI
+  # =========================
+  # 🤖 Anthropic（Claude）
+  # =========================
+  - DOMAIN-SUFFIX,anthropic.com,AI
+  - DOMAIN-SUFFIX,claude.ai,AI
+  - DOMAIN-SUFFIX,claudeusercontent.com,AI
+  # =========================
+  # 🤖 Google AI（Gemini）
+  # =========================
+  - DOMAIN,gemini.google.com,AI
+  - DOMAIN,bard.google.com,AI
+  - DOMAIN,ai.google.com,AI
+  # =========================
+  # 🤖 Microsoft Copilot
+  # =========================
+  - DOMAIN-SUFFIX,copilot.microsoft.com,AI
+  - DOMAIN-SUFFIX,bingapis.com,AI
+  # =========================
+  # 🤖 AI 通用平台
+  # =========================
+  - DOMAIN-SUFFIX,perplexity.ai,AI
+  - DOMAIN-SUFFIX,poe.com,AI
+  # =========================
+  # 🎬 YouTube（核心）
+  # =========================
+  - DOMAIN-SUFFIX,youtube.com,视频
+  - DOMAIN-SUFFIX,ytimg.com,视频
+  - DOMAIN-SUFFIX,googlevideo.com,视频
+  - DOMAIN-SUFFIX,youtu.be,视频
+  # =========================
+  # 🎬 Netflix（流媒体）
+  # =========================
+  - DOMAIN-SUFFIX,netflix.com,视频
+  - DOMAIN-SUFFIX,netflix.net,视频
+  - DOMAIN-SUFFIX,nflxvideo.net,视频
+  - DOMAIN-SUFFIX,nflximg.net,视频
+  - DOMAIN-SUFFIX,nflxext.com,视频
+  # =========================
+  # 🎬 TikTok（国际短视频）
+  # =========================
+  - DOMAIN-SUFFIX,tiktok.com,视频
+  - DOMAIN-SUFFIX,byteoversea.com,视频
+  - DOMAIN-SUFFIX,ibytedtos.com,视频
+  - DOMAIN-SUFFIX,tiktokcdn.com,视频
+  # =========================
+  # 🎬 Disney / Hulu / HBO
+  # =========================
+  - DOMAIN-SUFFIX,disneyplus.com,视频
+  - DOMAIN-SUFFIX,dssott.com,视频
+  - DOMAIN-SUFFIX,hulu.com,视频
+  - DOMAIN-SUFFIX,hbo.com,视频
+  - DOMAIN-SUFFIX,hbomax.com,视频
+  # =========================
+  # 🟦 微软核心账号体系
+  # =========================
+  - DOMAIN-SUFFIX,live.com,微软苹果
+  - DOMAIN-SUFFIX,login.live.com,微软苹果
+  - DOMAIN-SUFFIX,account.microsoft.com,微软苹果
+  - DOMAIN-SUFFIX,outlook.com,微软苹果
+  - DOMAIN-SUFFIX,office.com,微软苹果
+  - DOMAIN-SUFFIX,office365.com,微软苹果
+  - DOMAIN-SUFFIX,windowsupdate.com,微软苹果
+  - DOMAIN-SUFFIX,update.microsoft.com,微软苹果
+  - DOMAIN-SUFFIX,delivery.mp.microsoft.com,微软苹果
+  - DOMAIN-SUFFIX,xbox.com,微软苹果
+  - DOMAIN-SUFFIX,xboxlive.com,微软苹果
+  # =========================
+  # 苹果
+  # =========================
+  - GEOSITE,apple-cn,微软苹果
+  - DOMAIN-SUFFIX,aaplimg.com,微软苹果
+  - DOMAIN-SUFFIX,akadns.net,微软苹果
+  # =========================
+  # GitHub
+  # =========================
+  - DOMAIN-SUFFIX,githubusercontent.com,自动选择
+  - DOMAIN-SUFFIX,githubassets.com,自动选择
+  # =========================
+  # 💬 Telegram 专区
+  # =========================
+  - GEOSITE,telegram,自动选择
+  - GEOIP,telegram,自动选择
+  # =========================
+  # 🌍 代理核心（通用外网）
+  # =========================
+  - GEOSITE,google,自动选择
+  - GEOSITE,github,自动选择
+  - DOMAIN-SUFFIX,githubusercontent.com,自动选择
+  - DOMAIN-SUFFIX,wikipedia.org,自动选择
+  - DOMAIN-SUFFIX,reddit.com,自动选择
+  - DOMAIN-SUFFIX,twitter.com,自动选择
+  - DOMAIN-SUFFIX,x.com,自动选择
+  - DOMAIN-SUFFIX,quora.com,自动选择
+  - DOMAIN-SUFFIX,stackoverflow.com,自动选择
+  - DOMAIN-SUFFIX,stackexchange.com,自动选择
+  - DOMAIN-SUFFIX,docker.com,自动选择
+  - DOMAIN-SUFFIX,gitlab.com,自动选择
+  - DOMAIN-SUFFIX,medium.com,自动选择
+  - DOMAIN-SUFFIX,notion.so,自动选择
+  - DOMAIN-SUFFIX,figma.com,自动选择
+  # =========================
+  # 🌐 国际基础服务
+  # =========================
+  - GEOSITE,geolocation-!cn,自动选择
+
+  - MATCH,漏网
